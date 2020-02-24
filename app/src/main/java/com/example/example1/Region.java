@@ -1,5 +1,7 @@
 package com.example.example1;
 
+import java.util.ArrayList;
+
 enum Region {
     Taipei_City('A', 10, "台北市"),
     Taichung_City('B', 11, "台中市"),
@@ -24,6 +26,28 @@ enum Region {
     Penghu_County('X', 30, "澎湖縣"),
     Lienchiang_County('Z', 33, "連江縣");
 
+    char code;
+    int value;
+    String name;
+
     Region(char code, int value, String name) {
+        this.code = code;
+        this.value = value;
+        this.name = name;
+    }
+
+    public static ArrayList<String> getRegionList() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Region value : Region.values()) {
+            list.add(value.name);
+        }
+        return list;
+    }
+
+    public static Region getRegionByName(String name) {
+        for (Region value : Region.values()) {
+            if (value.name.equals(name)) return value;
+        }
+        return null;
     }
 }
