@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity {
     private Button generate;        //按鈕 (生成)
     private Button copy;            //按鈕 (複製)
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,40 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private Button.OnClickListener generateClick = new Button.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String id = "";
-            StringBuilder checksum = new StringBuilder();
-
-            Region region = Region.getRegionByName(spinner.getSelectedItem().toString());
-            id += region.code;
-
-            RadioGroup radioGroup = findViewById(R.id.radioGroup);
-            RadioButton radioButton = findViewById(radioGroup.getCheckedRadioButtonId());
-
-            if (radioButton.getText().equals("男性")) {
-                checksum.append('1');
-            } else {
-                checksum.append('2');
-            }
-
-            for (int i = 0; i <= 8; i++) {
-                checksum.append(new Random().nextInt(10) + 1);
-            }
-            id += checksum;
-            checksum.insert(0, region.value);
-
-            String[] splitCheckSum = checksum.toString().split("");
-            int c = (Integer.valueOf(splitCheckSum[2]) * 9) + (Integer.valueOf(splitCheckSum[1]));
-
-            for (int digit = 3; digit <= 9; digit++) {
-                c += Integer.valueOf(splitCheckSum[digit]) * (11 - digit);
-            }
-
-            if ((c % 10) == 0) {
-                id += 0;
-            } else {
-                id += 10 - (c % 10);
-            }
-            editText.setText(id);
+            editText.setText(generate());
         }
     };
 
@@ -97,40 +63,44 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private String generate() {
-        String id = "";
-        String checksum = "";
+        StringBuilder id = new StringBuilder();
 
         Region region = Region.getRegionByName(spinner.getSelectedItem().toString());
-        id += region.code;
+        id.append(region.code);
+        id.append(getGenderCode());
 
+        int checksum = 0;
+
+        Random random = new Random();
+        for (int i = 1; i < 8; i++) {
+            int number = random.nextInt(9) + 1;
+            id.append(number);
+            checksum += number * (8 - i);       //將值乘上權重 (權重順序：7~1)
+        }
+
+        checksum += Integer.parseInt(getGenderCode()) * 8;      //性別代號乘上權重
+        checksum += (region.value % 10) * 9;        //地區值取出個位數後乘上權重
+        checksum += region.value / 10 % 10;         //地區值取出十位數後乘上權重 (權重為一故直接加入 checksum)
+        checksum = checksum % 10;                   //將 checksum Mod 10
+
+        if (checksum != 0) {
+            id.append(10 - checksum);
+        } else {
+            id.append(0);
+        }
+
+        return id.toString();
+    }
+
+    private String getGenderCode() {
         RadioGroup radioGroup = findViewById(R.id.radioGroup);
         RadioButton radioButton = findViewById(radioGroup.getCheckedRadioButtonId());
 
         if (radioButton.getText().equals("男性")) {
-            checksum += '1';
+            return "1";
         } else {
-            checksum += '2';
+            return "2";
         }
-
-        for (int i = 0; i <= 8; i++) {
-            checksum += new Random().nextInt(10) + 1;
-        }
-        id += checksum;
-        checksum = region.value + checksum;
-
-        String[] splitCheckSum = checksum.split("");
-        int c = (Integer.valueOf(splitCheckSum[2]) * 9) + (Integer.valueOf(splitCheckSum[1]));
-
-        for (int digit = 3; digit <= 9; digit++) {
-            c += Integer.valueOf(splitCheckSum[digit]) * (11 - digit);
-        }
-
-        if ((c % 10) == 0) {
-            id += 0;
-        } else {
-            id += 10 - (c % 10);
-        }
-
-        return id;
     }
+
 }
